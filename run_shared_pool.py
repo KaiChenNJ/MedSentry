@@ -10,18 +10,6 @@ from evaluation.evaluator import Evaluator
 from utils.data_processor import process_results
 
 
-# def main():
-#     """
-#     Run the shared pool voting system
-#     """
-#     parser = argparse.ArgumentParser(description="Run shared pool voting system")
-#     parser.add_argument("--use_dark_agent", action="store_true",default=True, help="Include a dark agent in the team")
-#     parser.add_argument("--model", type=str, default="deepseek", help="Model to use (from config)")
-#     parser.add_argument("--output_dir", type=str, default="results/shared_pool", help="Output directory")
-#     parser.add_argument("--data_path", type=str, default="data/MAS_Med_safe_bench.csv", help="Path to dataset")
-#     parser.add_argument("--num_cases", type=int, default=-1, help="Number of cases to process (-1 for all)")
-#     parser.add_argument("--num_agents", type=int, default=5, help="Number of agents in the team")
-#     args = parser.parse_args()
 def main():
     """
     Run the shared pool voting system
@@ -31,11 +19,14 @@ def main():
     parser.add_argument("--model", type=str, default="deepseek", help="Model to use (from config)")
     parser.add_argument("--output_dir", type=str, default="results/shared_pool", help="Output directory")
     parser.add_argument("--data_path", type=str, default="data/MAS_Med_safe_bench.csv", help="Path to dataset")
-    parser.add_argument("--num_cases", type=int, default=-1, help="Number of cases to process (-1 for all)")
+    parser.add_argument("--num_cases", type=int, default=2, help="Number of cases to process (-1 for all)")
     parser.add_argument("--num_agents", type=int, default=5, help="Number of agents in the team")
     # 添加查询来源选项
     parser.add_argument("--query_source", type=str, default="gpt4o", choices=["gpt4o", "claude", "both"],
-                      help="Source of queries to use (gpt4o, claude, or both)")
+                        help="Source of queries to use (gpt4o, claude, or both)")
+    parser.add_argument("--evaluation_mode", type=str, default="both",
+                        choices=["full", "truncated", "both"],
+                        help="Evaluation mode: full, truncated, or both")
     args = parser.parse_args()
     # Ensure output directory exists
     os.makedirs(args.output_dir, exist_ok=True)
@@ -85,16 +76,19 @@ def main():
             case_start_time = time.time()
 
             print(f"\n[Case {case_number}] Starting discussion...")
-            # result = system.run_discussion(row.to_dict())
             result = system.run_discussion(row.to_dict(), query_source=args.query_source)
 
             print(f"\n[Case {case_number}] Discussion completed. Starting evaluation...")
-            evaluation = evaluator.evaluate(result)
+            evaluation = evaluator.evaluate(result, truncate_mode=args.evaluation_mode)
 
-            # Extract scores from evaluation
-            scores = evaluator.extract_scores(evaluation)
+            # 提取评分
+            scores = {}
+            if "full" in evaluation:
+                scores["full"] = evaluation["full"]["scores"]
+            if "truncated" in evaluation:
+                scores["truncated"] = evaluation["truncated"]["scores"]
 
-            # Add evaluation to result
+            # 添加评估到结果
             result["evaluation"] = evaluation
             result["scores"] = scores
 
@@ -139,9 +133,18 @@ def main():
             with open(f"{args.output_dir}/case_{case_number}.json", "w") as f:
                 json.dump(result, f, indent=2)
 
+            # 打印摘要结果
+            print(f"\n[Case {case_number}] Evaluation complete")
+            if "full" in scores:
+                print(f"Full evaluation score: {scores['full'].get('overall', 'N/A')}")
+            if "truncated" in scores:
+                print(f"Truncated evaluation score: {scores['truncated'].get('overall', 'N/A')}")
+            if "full" in scores and "truncated" in scores:
+                diff = scores["full"].get("overall", 0) - scores["truncated"].get("overall", 0)
+                print(f"Score difference (Full - Truncated): {diff:.2f}")
+
             print(f"\n[Case {case_number}] Completed in {case_duration:.2f} seconds")
             print(f"Token usage: {case_tokens} tokens")
-            print(f"Overall score: {scores.get('overall', 'N/A')}")
 
         except Exception as e:
             print(f"Error processing case {case_number}: {e}")
@@ -182,7 +185,15 @@ def main():
     print(f"Total tokens used: {total_tokens_used}")
     print(f"Average tokens per case: {performance_summary['average_tokens_per_case']:.2f}")
     print(f"Average time per case: {performance_summary['average_duration_per_case']:.2f} seconds")
-    print(f"Average overall score: {summary.get('average_overall_score', 'N/A')}")
+
+    # 显示平均评分结果
+    if "full" in summary:
+        print(f"Average full evaluation score: {summary.get('full', {}).get('average_overall_score', 'N/A')}")
+    if "truncated" in summary:
+        print(f"Average truncated evaluation score: {summary.get('truncated', {}).get('average_overall_score', 'N/A')}")
+    if "comparison" in summary:
+        print(f"Average score difference: {summary.get('comparison', {}).get('average_difference', 'N/A')}")
+
     print(f"Results saved to: {args.output_dir}")
     print("=" * 50)
 
