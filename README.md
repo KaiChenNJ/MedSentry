@@ -1,6 +1,8 @@
 # 3M-Bench
 This is the official repository for the paper *3M-Bench: Measurable Evaluation and Improvement of Multi-Agent Safety in Medical Domain*.
 
+![](img/main.png)
+
 ## :receipt: Data
 We collect 5,000 harmful requests spanning 25 threat categories with four subthemes each in medical domain.
 
