@@ -1,6 +1,10 @@
 # 3M-Bench
 This is the official repository for the paper *3M-Bench: Measurable Evaluation and Improvement of Multi-Agent Safety in Medical Domain*.
 
+## :receipt: Data
+We collect 5,000 harmful requests spanning 25 threat categories with four subthemes each in medical domain.
+
+
 ## :rocket: Quick Start
 ```
 # Run script for SharedPool Structure
