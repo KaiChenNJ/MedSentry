@@ -37,8 +37,3 @@ medical_llm_agents/
 ├── data/
 │   └── MAS_Med_safe_bench.csv   # 测试数据集
 ```
-
-#### 现在存在的问题
-1.没有加入防御方法；
-
-2.最后数据集改成全英文
