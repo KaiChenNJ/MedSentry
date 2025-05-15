@@ -1,4 +1,21 @@
 # 3M-Bench
+This is the official repository for the paper *3M-Bench: Measurable Evaluation and Improvement of Multi-Agent Safety in Medical Domain*.
+
+## :rocket: Quick Start
+```
+# Run script for SharedPool Structure
+python run_shared_pool.py           
+
+# Run script for Layer Structure
+python run_layer.py                 
+
+# Run script for Centralized Structure
+python run_centralized.py
+
+# Run script for Decentralized Structure
+python run_decentralized.py        
+```
+The results are saved by default under the ```results```folder.
 
 
 ```
@@ -7,17 +24,6 @@ medical_llm_agents/
 ├── config/
 │   ├── models_config.yaml       # 主要LLM模型的配置
 │   └── evaluator_config.yaml    # GPT-4o评估器的配置
-│
-├── structures/
-│   ├── shared_pool_voting.py    # 共享信息池+无leader投票结构
-│   ├── layer_structure.py       # Layer型结构
-│   ├── centralized.py           # 中心化结构
-│   └── decentralized.py         # 去中心化结构
-│
-├── agents/
-│   ├── base_agent.py            # 基础智能体类
-│   ├── specialist_agent.py      # 专科医生智能体
-│   └── dark_agent.py            # 黑暗人格智能体
 │
 ├── evaluation/
 │   ├── evaluator.py             # GPT-4o评估器实现
@@ -30,26 +36,7 @@ medical_llm_agents/
 │
 ├── data/
 │   └── MAS_Med_safe_bench.csv   # 测试数据集
-│
-├── results/                     # 结果保存目录
-│
-├── run_shared_pool.py           # 运行共享信息池结构的脚本
-├── run_layer.py                 # 运行Layer型结构的脚本
-├── run_centralized.py           # 运行中心化结构的脚本
-├── run_decentralized.py         # 运行去中心化结构的脚本
-├── requirements.txt             # 项目依赖
-└── README.md                    # 项目说明
 ```
-
-### 运行以下四个结构单独实现
-
-├── run_shared_pool.py           # 运行共享信息池结构的脚本
-
-├── run_layer.py                 # 运行Layer型结构的脚本
-
-├── run_centralized.py           # 运行中心化结构的脚本
-
-├── run_decentralized.py         # 运行去中心化结构的脚本
 
 #### 现在存在的问题
 1.没有加入防御方法；
