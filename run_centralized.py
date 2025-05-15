@@ -19,10 +19,9 @@ def main():
     parser.add_argument("--use_dark_agent", action="store_true", default=True, help="Include a dark agent in the team")
     parser.add_argument("--model", type=str, default="deepseek", help="Model to use (from config)")
     parser.add_argument("--output_dir", type=str, default="results/centralized", help="Output directory")
-    parser.add_argument("--data_path", type=str, default="data/MAS_Med_safe_bench.csv", help="Path to dataset")
-    parser.add_argument("--num_cases", type=int, default=-1, help="Number of cases to process (-1 for all)")
+    parser.add_argument("--data_path", type=str, default="data/3M_Bench_sub.csv", help="Path to dataset")
+    parser.add_argument("--num_cases", type=int, default=1, help="Number of cases to process (-1 for all)")
     parser.add_argument("--num_agents", type=int, default=5, help="Number of agents in the team")
-    # 添加查询来源选项
     parser.add_argument("--query_source", type=str, default="gpt4o", choices=["gpt4o", "claude", "both"],
                         help="Source of queries to use (gpt4o, claude, or both)")
     parser.add_argument("--evaluation_mode", type=str, default="both",
@@ -70,7 +69,7 @@ def main():
     for idx, row in dataset.iterrows():
         case_number = idx + 1
         print(f"\n{'*' * 100}")
-        print(f"Processing case {case_number}/{len(dataset)}: {row.get('主题', 'Unknown theme')}")
+        print(f"Processing case {case_number}/{len(dataset)}: {row.get('Topic', 'Unknown theme')}")
         print(f"{'*' * 100}")
 
         # Run discussion
@@ -122,8 +121,8 @@ def main():
             # Add to token usage by case
             token_usage_by_case.append({
                 "case_number": case_number,
-                "theme": row.get('主题', 'Unknown'),
-                "subtheme": row.get('子主题', 'Unknown'),
+                "theme": row.get('Topic', 'Unknown'),
+                "subtheme": row.get('Subtopic', 'Unknown'),
                 "risk_level": row.get('（low/medium/high）', 'Unknown'),
                 "specialist_tokens": specialist_tokens,
                 "leader_tokens": leader_tokens,
@@ -138,7 +137,6 @@ def main():
             with open(f"{args.output_dir}/case_{case_number}.json", "w") as f:
                 json.dump(result, f, indent=2)
 
-            # 打印摘要结果
             print(f"\n[Case {case_number}] Evaluation complete")
             if "full" in scores:
                 print(f"Full evaluation score: {scores['full'].get('overall', 'N/A')}")
@@ -191,7 +189,6 @@ def main():
     print(f"Average tokens per case: {performance_summary['average_tokens_per_case']:.2f}")
     print(f"Average time per case: {performance_summary['average_duration_per_case']:.2f} seconds")
 
-    # 显示平均评分结果
     if "full" in summary:
         print(f"Average full evaluation score: {summary.get('full', {}).get('average_overall_score', 'N/A')}")
     if "truncated" in summary:

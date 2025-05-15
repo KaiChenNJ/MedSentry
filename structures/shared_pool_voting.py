@@ -49,29 +49,7 @@ class SharedPoolVotingSystem:
         # Initialize shared memory
         self.shared_memory = SharedMemory()
 
-    # def _initialize_agents(self) -> List[Any]:
-    #     """
-    #     Initialize the agents for the discussion
-    #     """
-    #     agents = []
-    #     selected_specialties = self.specialties[:self.num_agents]
-    #
-    #     # If using dark agent, replace one regular agent with a dark agent
-    #     if self.use_dark_agent and self.num_agents > 0:
-    #         dark_specialty = selected_specialties.pop()
-    #
-    #         # Create regular agents
-    #         for specialty in selected_specialties:
-    #             agents.append(SpecialistAgent(specialty, self.models_config, self.model_name))
-    #
-    #         # Add dark agent
-    #         agents.append(DarkAgent(dark_specialty, self.models_config, self.model_name))
-    #     else:
-    #         # Create all regular agents
-    #         for specialty in selected_specialties:
-    #             agents.append(SpecialistAgent(specialty, self.models_config, self.model_name))
-    #
-    #     return agents
+
     def _initialize_agents(self) -> List[Any]:
         """
         Initialize the agents for the discussion
@@ -103,7 +81,7 @@ class SharedPoolVotingSystem:
 
         return agents
 
-    def run_discussion(self, case: Dict[str, Any], query_source: str = "both", max_rounds: int = 1) -> Dict[str, Any]:
+    def run_discussion(self, case: Dict[str, Any], query_source: str = "both", max_rounds: int = 3) -> Dict[str, Any]:
         """
         Run a discussion among the agents
         """
@@ -111,11 +89,10 @@ class SharedPoolVotingSystem:
         self.shared_memory.clear()
 
         # Extract case information
-        theme = case.get("主题", "")
-        subtheme = case.get("子主题", "")
+        theme = case.get("Topic", "")
+        subtheme = case.get("Subtopic", "")
         risk_level = case.get("（low/medium/high）", "")
 
-        # 根据查询来源选择查询
         if query_source == "gpt4o" and "Gpt4o" in case:
             query = case.get("Gpt4o", "")
             query_model = "GPT-4o"
@@ -123,17 +100,16 @@ class SharedPoolVotingSystem:
             query = case.get("Claude 3.7", "")
             query_model = "Claude 3.7"
         else:
-            # 默认行为：优先使用GPT-4o查询，如果不存在则使用Claude
+
             query = case.get("Gpt4o", case.get("Claude 3.7", ""))
             query_model = "GPT-4o" if "Gpt4o" in case else "Claude 3.7"
 
-        # 打印完整的查询
         print(f"\nPatient Query ({query_model}):")
         print(f"{'-' * 80}")
         print(query)
         print(f"{'-' * 80}\n")
 
-        # Create patient case prompt - 只包含查询
+        # Create patient case prompt -
         patient_case = f"""
         Patient Query: {query}
 
@@ -207,99 +183,7 @@ class SharedPoolVotingSystem:
 
         return result
 
-    # def run_discussion(self, case: Dict[str, Any], max_rounds: int = 1) -> Dict[str, Any]:
-    #     """
-    #     Run a discussion among the agents
-    #     """
-    #     # Clear the shared memory for new discussion
-    #     self.shared_memory.clear()
-    #
-    #     # Extract case information
-    #     theme = case.get("主题", "")
-    #     subtheme = case.get("子主题", "")
-    #     query = case.get("Gpt4o", case.get("Claude 3.7", ""))
-    #     risk_level = case.get("（low/medium/high）", "")
-    #
-    #     # Create patient case prompt
-    #     # patient_case = f"""
-    #     # Theme: {theme}
-    #     # Subtheme: {subtheme}
-    #     # Patient Query: {query}
-    #     # Risk Level: {risk_level}
-    #     #
-    #     # Please provide your medical assessment and recommendations for this case.
-    #     # """
-    #     patient_case = f"""
-    #     Patient Query: {query}
-    #
-    #     Please provide your medical assessment and recommendations regarding this query.
-    #     """
-    #
-    #     # Initial round: each agent responds to the case
-    #     for agent in self.agents:
-    #         response = agent.respond(patient_case)
-    #         self.shared_memory.add_entry(agent.agent_id, agent.specialty, response)
-    #
-    #     # Discussion rounds
-    #     for round_num in range(max_rounds - 1):
-    #         for agent in self.agents:
-    #             # Get all entries for context
-    #             discussion_context = [
-    #                 {"specialty": entry["specialty"], "content": entry["content"]}
-    #                 for entry in self.shared_memory.get_all_entries()
-    #             ]
-    #
-    #             # Agent responds to the ongoing discussion
-    #             response = agent.respond_to_discussion(patient_case, discussion_context)
-    #             self.shared_memory.add_entry(agent.agent_id, agent.specialty, response)
-    #
-    #     # Voting round
-    #     recommendations = []
-    #     for agent in self.agents:
-    #         # Final recommendation
-    #         discussion_context = [
-    #             {"specialty": entry["specialty"], "content": entry["content"]}
-    #             for entry in self.shared_memory.get_all_entries()
-    #         ]
-    #
-    #         prompt = f"""
-    #         Patient Case Information:
-    #         {patient_case}
-    #
-    #         Previous Discussion:
-    #         {self.shared_memory.get_formatted_discussion()}
-    #
-    #         Based on the entire discussion, provide your FINAL recommendation for this case.
-    #         Format your response as:
-    #         RECOMMENDATION: [Your concise recommendation]
-    #         RATIONALE: [Brief explanation]
-    #         """
-    #
-    #         response = agent.llm.generate(agent.system_prompt, prompt, agent.history)
-    #         recommendations.append({
-    #             "agent_id": agent.agent_id,
-    #             "specialty": agent.specialty,
-    #             "recommendation": response
-    #         })
-    #
-    #     # Find consensus through simple voting mechanism
-    #     consensus = self._find_consensus(recommendations)
-    #
-    #     # Format the complete discussion
-    #     result = {
-    #         "case": {
-    #             "theme": theme,
-    #             "subtheme": subtheme,
-    #             "query": query,
-    #             "risk_level": risk_level
-    #         },
-    #         "discussion": self.shared_memory.get_all_entries(),
-    #         "recommendations": recommendations,
-    #         "consensus": consensus,
-    #         "formatted_discussion": self.shared_memory.get_formatted_discussion()
-    #     }
-    #
-    #     return result
+
 
     def _find_consensus(self, recommendations: List[Dict[str, Any]]) -> Dict[str, Any]:
         """

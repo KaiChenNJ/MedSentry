@@ -23,7 +23,6 @@ class ScoringAnalyzer:
         """
         Analyze scores by theme and subtheme
         """
-        # 提取主题数据
         theme_data = []
         for result in self.results:
             case = result.get("case", {})
@@ -300,8 +299,7 @@ class ScoringAnalyzer:
             return
 
         try:
-            # 创建主题分数比较
-            # 按主题和评估类型分组计算平均分
+
             theme_scores = df.groupby(["theme", "evaluation_type"])["overall_score"].mean().unstack()
 
             # 确保有数据可用
@@ -382,7 +380,6 @@ class ScoringAnalyzer:
             x = np.arange(len(labels))
             width = 0.35  # 条形宽度
 
-            # 绘制分组条形图
             eval_types = principles_df.columns
             colors = ['#5DA5DA', '#FAA43A', '#60BD68', '#F17CB0']
 
@@ -392,17 +389,15 @@ class ScoringAnalyzer:
                                label=f'{eval_type.capitalize()} Evaluation',
                                color=colors[i % len(colors)])
 
-                # 在条形上添加数值标签
                 for rect in rects:
                     height = rect.get_height()
                     ax.annotate(f'{height:.1f}',
                                 xy=(rect.get_x() + rect.get_width() / 2, height),
-                                xytext=(0, 3),  # 3点垂直偏移
+                                xytext=(0, 3),  #
                                 textcoords="offset points",
                                 ha='center', va='bottom',
                                 fontsize=8)
 
-            # 添加图表元素
             ax.set_ylabel('Average Score (0-10)')
             ax.set_title('Average Score by Ethical Principle and Evaluation Type')
             ax.set_xticks(x)
@@ -468,181 +463,3 @@ class ScoringAnalyzer:
             import traceback
             traceback.print_exc()
 
-    # def _visualize_by_evaluation_type(self, df: pd.DataFrame) -> None:
-    #     """创建按评估类型分组的可视化"""
-    #     # 确保有足够的数据可用
-    #     if df.empty or 'evaluation_type' not in df.columns:
-    #         print("WARNING: Not enough data for evaluation type visualization")
-    #         return
-    #
-    #     # 检查每种评估类型是否有足够数据
-    #     type_counts = df['evaluation_type'].value_counts()
-    #     print(f"Evaluation type counts: {type_counts.to_dict()}")
-    #
-    #     if type_counts.empty or type_counts.max() < 1:
-    #         print("WARNING: Insufficient data for each evaluation type")
-    #         return
-    #
-    #     try:
-    #         # 创建主题分数比较
-    #         # 按主题和评估类型分组计算平均分
-    #         theme_scores = df.groupby(["theme", "evaluation_type"])["overall_score"].mean().unstack()
-    #
-    #         # 确保有数据可用
-    #         if theme_scores.empty:
-    #             print("WARNING: No theme scores data available")
-    #             return
-    #
-    #         # 排序主题
-    #         theme_scores = theme_scores.sort_values(
-    #             by="full" if "full" in theme_scores.columns else theme_scores.columns[0])
-    #
-    #         # 设置X轴
-    #         x = np.arange(len(theme_scores.index))
-    #         width = 0.35
-    #
-    #         # 创建条形图
-    #         fig, ax = plt.subplots(figsize=(14, 10))
-    #
-    #         if "full" in theme_scores.columns:
-    #             rects1 = ax.barh(x - width / 2, theme_scores["full"], width, label='Full Evaluation', color='skyblue')
-    #
-    #         if "truncated" in theme_scores.columns:
-    #             rects2 = ax.barh(x + width / 2, theme_scores["truncated"], width, label='Truncated Evaluation',
-    #                              color='salmon')
-    #
-    #         # 添加标签和图例
-    #         ax.set_xlabel('Average Score (0-10)')
-    #         ax.set_title('Average Safety Score by Theme and Evaluation Type')
-    #         ax.set_yticks(x)
-    #         ax.set_yticklabels(theme_scores.index)
-    #         ax.legend()
-    #         ax.grid(axis='x', linestyle='--', alpha=0.7)
-    #
-    #         # 添加数值标签
-    #         if "full" in theme_scores.columns:
-    #             for bar in rects1:
-    #                 width = bar.get_width()
-    #                 ax.text(width + 0.1, bar.get_y() + bar.get_height() / 2, f'{width:.2f}',
-    #                         va='center', fontsize=9)
-    #
-    #         if "truncated" in theme_scores.columns:
-    #             for bar in rects2:
-    #                 width = bar.get_width()
-    #                 ax.text(width + 0.1, bar.get_y() + bar.get_height() / 2, f'{width:.2f}',
-    #                         va='center', fontsize=9)
-    #
-    #         plt.tight_layout()
-    #         plt.savefig(f"{self.output_dir}/theme_scores_comparison.png", dpi=300)
-    #         plt.close()
-    #
-    #         # 创建原则分数比较
-    #         principles = [f"principle_{i}" for i in range(1, 10)]
-    #
-    #         # 按评估类型和原则分组计算平均分
-    #         principles_df = pd.DataFrame()
-    #
-    #         for eval_type in df["evaluation_type"].unique():
-    #             eval_df = df[df["evaluation_type"] == eval_type]
-    #             principles_df[eval_type] = eval_df[principles].mean()
-    #
-    #         # 创建条形图
-    #         plt.figure(figsize=(14, 10))
-    #
-    #         x = np.arange(len(principles))
-    #         width = 0.35
-    #
-    #         fig, ax = plt.subplots(figsize=(14, 10))
-    #
-    #         eval_types = principles_df.columns
-    #         colors = ['skyblue', 'salmon', 'lightgreen', 'gold']
-    #
-    #         for i, eval_type in enumerate(eval_types):
-    #             offset = (i - len(eval_types) / 2 + 0.5) * width
-    #             rects = ax.barh(x + offset, principles_df[eval_type], width,
-    #                             label=f'{eval_type.capitalize()} Evaluation',
-    #                             color=colors[i % len(colors)])
-    #
-    #             # 添加数值标签
-    #             for bar in rects:
-    #                 width = bar.get_width()
-    #                 ax.text(width + 0.1, bar.get_y() + bar.get_height() / 2, f'{width:.2f}',
-    #                         va='center', fontsize=9)
-    #
-    #         # 添加标签和图例
-    #         ax.set_xlabel('Average Score (0-10)')
-    #         ax.set_title('Average Score by Ethical Principle and Evaluation Type')
-    #
-    #         # 更好的原则标签
-    #         principle_names = {
-    #             "principle_1": "1. Competence & Dignity",
-    #             "principle_2": "2. Professionalism",
-    #             "principle_3": "3. Law & Society",
-    #             "principle_4": "4. Patient Rights",
-    #             "principle_5": "5. Continued Learning",
-    #             "principle_6": "6. Physician Freedom",
-    #             "principle_7": "7. Public Health",
-    #             "principle_8": "8. Patient Responsibility",
-    #             "principle_9": "9. Medical Care Access"
-    #         }
-    #
-    #         ax.set_yticks(x)
-    #         ax.set_yticklabels([principle_names.get(p, p) for p in principles])
-    #         ax.legend()
-    #         ax.grid(axis='x', linestyle='--', alpha=0.7)
-    #
-    #         plt.tight_layout()
-    #         plt.savefig(f"{self.output_dir}/principle_scores_comparison.png", dpi=300)
-    #         plt.close()
-    #
-    #         # 创建差异分布图
-    #         if len(eval_types) >= 2 and "full" in eval_types and "truncated" in eval_types:
-    #             # 计算每个案例的差异
-    #             case_diffs = []
-    #             for theme in df["theme"].unique():
-    #                 theme_df = df[df["theme"] == theme]
-    #                 full_scores = theme_df[theme_df["evaluation_type"] == "full"]["overall_score"]
-    #                 truncated_scores = theme_df[theme_df["evaluation_type"] == "truncated"]["overall_score"]
-    #
-    #                 # 需要确保索引匹配
-    #                 if len(full_scores) > 0 and len(truncated_scores) > 0:
-    #                     # 重置索引以便配对计算
-    #                     full_scores = full_scores.reset_index(drop=True)
-    #                     truncated_scores = truncated_scores.reset_index(drop=True)
-    #
-    #                     # 确保长度相同
-    #                     min_len = min(len(full_scores), len(truncated_scores))
-    #                     diffs = full_scores.iloc[:min_len].values - truncated_scores.iloc[:min_len].values
-    #
-    #                     for diff in diffs:
-    #                         case_diffs.append({"theme": theme, "difference": diff})
-    #
-    #             if case_diffs:
-    #                 diff_df = pd.DataFrame(case_diffs)
-    #
-    #                 # 创建差异箱线图（按主题）
-    #                 plt.figure(figsize=(14, 10))
-    #                 sns.boxplot(x="difference", y="theme", data=diff_df, orient="h")
-    #                 plt.axvline(x=0, color='r', linestyle='--')
-    #                 plt.title('Difference Between Full and Truncated Evaluation (Full - Truncated)')
-    #                 plt.xlabel('Score Difference')
-    #                 plt.grid(axis='x', linestyle='--', alpha=0.7)
-    #                 plt.tight_layout()
-    #                 plt.savefig(f"{self.output_dir}/score_difference_by_theme.png", dpi=300)
-    #                 plt.close()
-    #
-    #                 # 创建总体差异直方图
-    #                 plt.figure(figsize=(12, 8))
-    #                 sns.histplot(diff_df["difference"], kde=True)
-    #                 plt.axvline(x=0, color='r', linestyle='--')
-    #                 plt.title('Distribution of Score Differences (Full - Truncated)')
-    #                 plt.xlabel('Score Difference')
-    #                 plt.ylabel('Count')
-    #                 plt.grid(axis='x', linestyle='--', alpha=0.7)
-    #                 plt.tight_layout()
-    #                 plt.savefig(f"{self.output_dir}/score_difference_distribution.png", dpi=300)
-    #                 plt.close()
-    #     except Exception as e:
-    #         print(f"ERROR in evaluation type visualization: {e}")
-    #         import traceback
-    #         traceback.print_exc()

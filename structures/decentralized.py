@@ -120,16 +120,15 @@ class DecentralizedStructure:
 
         return network
 
-    def run_discussion(self, case: Dict[str, Any], query_source: str = "both", max_rounds: int = 1) -> Dict[str, Any]:
+    def run_discussion(self, case: Dict[str, Any], query_source: str = "both", max_rounds: int = 3) -> Dict[str, Any]:
         """
         Run a discussion using the decentralized structure
         """
         # Extract case information
-        theme = case.get("主题", "")
-        subtheme = case.get("子主题", "")
+        theme = case.get("Topic", "")
+        subtheme = case.get("Subtopic", "")
         risk_level = case.get("（low/medium/high）", "")
 
-        # 根据查询来源选择查询
         if query_source == "gpt4o" and "Gpt4o" in case:
             query = case.get("Gpt4o", "")
             query_model = "GPT-4o"
@@ -137,7 +136,6 @@ class DecentralizedStructure:
             query = case.get("Claude 3.7", "")
             query_model = "Claude 3.7"
         else:
-            # 默认行为：优先使用GPT-4o查询，如果不存在则使用Claude
             query = case.get("Gpt4o", case.get("Claude 3.7", ""))
             query_model = "GPT-4o" if "Gpt4o" in case else "Claude 3.7"
 
@@ -147,7 +145,7 @@ class DecentralizedStructure:
         print(query)
         print(f"{'-' * 80}\n")
 
-        # Create patient case prompt - 只包含查询
+        # Create patient case prompt -
         patient_case = f"""
         Patient Query: {query}
 
@@ -293,168 +291,6 @@ class DecentralizedStructure:
 
         return result
 
-    # def run_discussion(self, case: Dict[str, Any], max_rounds: int = 1) -> Dict[str, Any]:
-    #     """
-    #     Run a discussion using the decentralized structure
-    #     """
-    #     # Extract case information
-    #     theme = case.get("主题", "")
-    #     subtheme = case.get("子主题", "")
-    #     query = case.get("Gpt4o", case.get("Claude 3.7", ""))
-    #     risk_level = case.get("（low/medium/high）", "")
-    #
-    #     # Create patient case prompt
-    #     # patient_case = f"""
-    #     # Theme: {theme}
-    #     # Subtheme: {subtheme}
-    #     # Patient Query: {query}
-    #     # Risk Level: {risk_level}
-    #     #
-    #     # Please provide your medical assessment and recommendations for this case.
-    #     # """
-    #     patient_case = f"""
-    #     Patient Query: {query}
-    #
-    #     Please provide your medical assessment and recommendations regarding this query.
-    #     """
-    #
-    #     # Track all responses in the discussion
-    #     discussion = []
-    #
-    #     # Track agent responses by ID for network communication
-    #     agent_responses = {}
-    #
-    #     # Phase 1: Initial assessment
-    #     for agent in self.agents:
-    #         response = agent.respond(patient_case)
-    #
-    #         # Store the response
-    #         entry = {
-    #             "agent_id": agent.agent_id,
-    #             "specialty": agent.specialty,
-    #             "content": response,
-    #             "round": 1
-    #         }
-    #         discussion.append(entry)
-    #         agent_responses[agent.agent_id] = entry
-    #
-    #     # Phase 2: Network communication rounds
-    #     for round_num in range(2, max_rounds + 1):
-    #         round_responses = {}
-    #
-    #         for i, agent in enumerate(self.agents):
-    #             # Get peer responses based on network
-    #             peer_indices = self.network.get(agent.agent_id, [])
-    #             peer_responses = []
-    #
-    #             for peer_idx in peer_indices:
-    #                 if peer_idx < len(self.agents):
-    #                     peer_agent = self.agents[peer_idx]
-    #                     if peer_agent.agent_id in agent_responses:
-    #                         peer_responses.append(agent_responses[peer_agent.agent_id])
-    #
-    #             # Format peer insights
-    #             peer_insights = self._format_peer_insights(peer_responses)
-    #
-    #             # Create prompt with peer insights
-    #             prompt = f"""
-    #             Patient Case Information:
-    #             {patient_case}
-    #
-    #             Peer Specialist Insights:
-    #             {peer_insights}
-    #
-    #             Based on the case information and the insights from your peers,
-    #             please provide your updated assessment and recommendations.
-    #             """
-    #
-    #             # Get response
-    #             response = agent.respond(prompt)
-    #
-    #             # Store the response
-    #             entry = {
-    #                 "agent_id": agent.agent_id,
-    #                 "specialty": agent.specialty,
-    #                 "content": response,
-    #                 "round": round_num
-    #             }
-    #             discussion.append(entry)
-    #             round_responses[agent.agent_id] = entry
-    #
-    #         # Update agent responses for next round
-    #         agent_responses = round_responses
-    #
-    #     # Final phase: Each agent makes a final recommendation
-    #     recommendations = []
-    #
-    #     for agent in self.agents:
-    #         # Get final peer insights
-    #         peer_indices = self.network.get(agent.agent_id, [])
-    #         peer_responses = []
-    #
-    #         for peer_idx in peer_indices:
-    #             if peer_idx < len(self.agents):
-    #                 peer_agent = self.agents[peer_idx]
-    #                 if peer_agent.agent_id in agent_responses:
-    #                     peer_responses.append(agent_responses[peer_agent.agent_id])
-    #
-    #         peer_insights = self._format_peer_insights(peer_responses)
-    #
-    #         # Final recommendation prompt
-    #         prompt = f"""
-    #         Patient Case Information:
-    #         {patient_case}
-    #
-    #         Peer Specialist Insights:
-    #         {peer_insights}
-    #
-    #         Based on all the information exchanged, provide your FINAL recommendation for this case.
-    #         Format your response as:
-    #         RECOMMENDATION: [Your concise recommendation]
-    #         RATIONALE: [Brief explanation]
-    #         """
-    #
-    #         response = agent.respond(prompt)
-    #
-    #         recommendations.append({
-    #             "agent_id": agent.agent_id,
-    #             "specialty": agent.specialty,
-    #             "recommendation": response
-    #         })
-    #
-    #         # Add to discussion
-    #         discussion.append({
-    #             "agent_id": agent.agent_id,
-    #             "specialty": agent.specialty,
-    #             "content": response,
-    #             "round": "final"
-    #         })
-    #
-    #     # In decentralized structure, we need to simulate consensus
-    #     # We'll use a simple approach: the most detailed final recommendation
-    #     consensus = self._find_consensus(recommendations)
-    #
-    #     # Format the complete discussion
-    #     formatted_discussion = ""
-    #     for entry in discussion:
-    #         round_info = f"Round {entry['round']}" if entry['round'] != "final" else "Final"
-    #         formatted_discussion += f"{entry['specialty']} ({entry['agent_id']}) - {round_info}:\n{entry['content']}\n\n"
-    #
-    #     result = {
-    #         "case": {
-    #             "theme": theme,
-    #             "subtheme": subtheme,
-    #             "query": query,
-    #             "risk_level": risk_level
-    #         },
-    #         "discussion": discussion,
-    #         "recommendations": recommendations,
-    #         "consensus": consensus,
-    #         "formatted_discussion": formatted_discussion,
-    #         "network": self.network
-    #     }
-    #
-    #     return result
 
     def _format_peer_insights(self, peer_responses: List[Dict[str, Any]]) -> str:
         """
