@@ -4,6 +4,8 @@ This is the official repository for the paper *3M-Bench: Measurable Evaluation a
 ## :receipt: Data
 We collect 5,000 harmful requests spanning 25 threat categories with four subthemes each in medical domain.
 
+![](img/data.png)
+
 You can check the data example under the ```data``` folder.
 
 
