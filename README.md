@@ -1,5 +1,5 @@
-# 3M-Bench
-This is the official repository for the paper *3M-Bench: Measurable Evaluation and Improvement of Multi-Agent Safety in Medical Domain*.
+# MedSentry
+This is the official repository for the paper *MedSentry: Understanding and Mitigating Safety Risks in Medical LLM Multi-Agent Systems*.
 
 ![](img/main.png)
 
